@@ -1062,11 +1062,15 @@ function syncIdle(){
   else syncState('ok', 'Sincronizat · ' + new Date(lastSync).toLocaleTimeString('ro-RO',{hour:'2-digit',minute:'2-digit'}));
 }
 
+function syncUrl(extra){
+  return CFG.url + (CFG.url.indexOf('?') < 0 ? '?' : '&') +
+         'token=' + encodeURIComponent(CFG.token) + (extra || '') + '&t=' + Date.now();
+}
+
 function pull(silent){
   if(!CFG.url) { if(!silent) toast('Completează întâi adresa de sincronizare în Setări'); return Promise.resolve(false); }
   syncState('busy', 'Se descarcă…');
-  return fetch(CFG.url + (CFG.url.indexOf('?') < 0 ? '?' : '&') + 'token=' + encodeURIComponent(CFG.token) + '&t=' + Date.now(),
-               {method:'GET', redirect:'follow'})
+  return fetch(syncUrl(), {method:'GET', redirect:'follow'})
     .then(function(r){ return r.json(); })
     .then(function(res){
       if(!res.ok) throw new Error(res.error || 'eroare');
@@ -1078,7 +1082,7 @@ function pull(silent){
       lastSync = Date.now();
       switchTab(curTab);
       syncIdle();
-      if(!silent) toast('Date preluate de pe Google Sheets');
+      toast('Actualizat cu modificările de pe celălalt dispozitiv');
       return true;
     })
     .catch(function(err){
@@ -1121,19 +1125,55 @@ function schedulePush(){
   }, 2500);
 }
 
-/* la revenirea în fereastră, verifică dacă altcineva a modificat */
+/* ---- verificare periodică, ca modificările de pe celălalt dispozitiv
+       să apară fără să fie nevoie să ieși și să revii în pagină ----
+   Se trimite o cerere minusculă (probe) care întoarce doar ora ultimei
+   modificări; datele propriu-zise se descarcă doar dacă chiar s-a schimbat
+   ceva. Așa rămânem mult sub cota zilnică a Google. */
+var POLL_MS = 25000;
+var pollTimer = null;
+
+function probe(){
+  if(!CFG.url || !CFG.auto || syncing || document.hidden) return;
+  fetch(syncUrl('&probe=1'), {method:'GET', redirect:'follow'})
+    .then(function(r){ return r.json(); })
+    .then(function(res){
+      if(!res || !res.ok) return;
+      /* Scriptul nou raspunde doar cu {ts}. Cel vechi ignora ?probe si trimite
+         intreg pachetul de date — atunci citim ora din el. Asa merge cu ambele
+         versiuni, iar dupa actualizarea scriptului cererea devine si ieftina. */
+      var rts = (res.ts != null) ? res.ts : ((res.data && res.data.ts) || 0);
+      if(rts > (S.ts || 0)) pull(true);
+      else { lastSync = Date.now(); syncIdle(); }
+    })
+    .catch(function(){ /* o verificare ratată nu e o problemă; reîncearcă la următoarea */ });
+}
+function startPolling(){
+  clearInterval(pollTimer);
+  pollTimer = null;
+  if(!CFG.url || !CFG.auto) return;
+  pollTimer = setInterval(probe, POLL_MS);
+}
+
+/* la revenirea în fereastră, verifică imediat */
 document.addEventListener('visibilitychange', function(){
   if(!document.hidden && CFG.url && CFG.auto) pull(true);
+});
+window.addEventListener('focus', function(){
+  if(CFG.url && CFG.auto) probe();
+});
+window.addEventListener('online', function(){
+  if(CFG.url && CFG.auto) pull(true);
 });
 
 el('setList').addEventListener('input', function(ev){
   var k = ev.target.dataset.cfg;
   if(!k) return;
   CFG[k] = ev.target.type === 'checkbox' ? ev.target.checked : ev.target.value.trim();
-  saveCfg(); syncIdle();
+  saveCfg(); syncIdle(); startPolling();
 });
 el('setList').addEventListener('change', function(ev){
-  if(ev.target.dataset.cfg === 'auto'){ CFG.auto = ev.target.checked; saveCfg(); }
+  if(ev.target.dataset.cfg === 'auto'){ CFG.auto = ev.target.checked; saveCfg(); startPolling(); }
 });
 el('setList').addEventListener('click', function(ev){
   var b = ev.target.closest('button'); if(!b) return;
@@ -1168,6 +1208,7 @@ renderIstoric();
 lastPushed = S.ts || 0;
 syncIdle();
 if(CFG.url) pull(true);
+startPolling();
 })();
 </script>
 </body>
