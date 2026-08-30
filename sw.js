@@ -9,7 +9,7 @@
  * sa ajunga mereu la server, iar un raspuns vechi din copie ar fi periculos.
  */
 
-var CACHE = 'aprovizionare-v2';
+var CACHE = 'aprovizionare-v3';
 
 var FISIERE = [
   './',
@@ -71,8 +71,11 @@ self.addEventListener('fetch', function (e) {
   /* Restul, doar de pe adresa noastra. */
   if (url.origin !== self.location.origin) return;
 
+  /* cache:'reload' sare peste memoria obisnuita a browserului. Fara asta,
+     GitHub Pages spune "pastreaza 10 minute", iar noi serveam vechitura
+     desi tocmai publicasem o versiune noua. */
   e.respondWith(
-    fetch(req)
+    fetch(req.url, { cache: 'reload', credentials: 'same-origin' })
       .then(function (res) {
         if (res && res.ok) {
           var dubla = res.clone();
@@ -81,6 +84,7 @@ self.addEventListener('fetch', function (e) {
         return res;
       })
       .catch(function () {
+        /* fara retea: ne intoarcem la copie */
         return caches.match(req).then(function (copie) {
           return copie || caches.match('./index.html');
         });
