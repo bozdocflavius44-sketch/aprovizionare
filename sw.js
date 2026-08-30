@@ -9,7 +9,7 @@
  * sa ajunga mereu la server, iar un raspuns vechi din copie ar fi periculos.
  */
 
-var CACHE = 'aprovizionare-v1';
+var CACHE = 'aprovizionare-v2';
 
 var FISIERE = [
   './',
@@ -18,7 +18,8 @@ var FISIERE = [
   './icon-180.png',
   './icon-192.png',
   './icon-512.png',
-  './favicon-32.png'
+  './favicon-32.png',
+  './logo.png'
 ];
 
 self.addEventListener('install', function (e) {

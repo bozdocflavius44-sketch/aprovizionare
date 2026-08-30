@@ -258,7 +258,9 @@ tfoot td{background:var(--panel-2); font-weight:600; border-bottom:0; border-top
   main{padding:0; max-width:none}
   .pane{display:none !important}
   .pane.on{display:block !important}
-  .printhead{display:block; margin-bottom:14px; border-bottom:2px solid #000; padding-bottom:8px}
+  .printhead{display:flex; align-items:center; gap:16px; margin-bottom:14px;
+             border-bottom:2px solid #000; padding-bottom:10px}
+  .print-logo{width:62px; height:62px; flex:0 0 62px}
   .ordercard{break-inside:avoid; page-break-inside:avoid; box-shadow:none; border:1px solid #999; margin-bottom:14px}
   .oc-list li{border-color:#ddd}
   .oc-foot{background:none}
@@ -330,8 +332,11 @@ tfoot td{background:var(--panel-2); font-weight:600; border-bottom:0; border-top
 
   <section class="pane" id="pane-sumar">
     <div class="printhead">
-      <h2 style="font-size:18pt">Comandă marfă</h2>
-      <div id="printMeta" style="font-size:10pt"></div>
+      <img class="print-logo" src="logo.png" alt="Cheese &amp; Jamon Bar">
+      <div>
+        <h2 style="font-size:18pt">Comandă marfă</h2>
+        <div id="printMeta" style="font-size:10pt"></div>
+      </div>
     </div>
     <div class="barline no-print">
       <button class="btn primary" id="btnPrint">Printează / PDF</button>
