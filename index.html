@@ -1258,6 +1258,10 @@ el('setList').addEventListener('click', function(ev){
   var b = ev.target.closest('button'); if(!b) return;
   if(b.id === 'btnPull'){ pull(false); }
   else if(b.id === 'btnPush'){ push(false); }
+  else if(b.id === 'btnCopyUrl'){
+    if(!CFG.url){ toast('Nu ai încă nicio adresă completată'); return; }
+    copy(CFG.url);
+  }
 });
 
 function syncCard(){
@@ -1272,8 +1276,9 @@ function syncCard(){
     '<div class="addrow">' +
       '<button class="btn primary" id="btnPush">Trimite datele pe Sheets</button>' +
       '<button class="btn" id="btnPull">Adu datele de pe Sheets</button>' +
+      '<button class="btn" id="btnCopyUrl">Copiază adresa</button>' +
       '<label class="switch" style="margin-left:8px"><input type="checkbox" data-cfg="auto"' + (CFG.auto ? ' checked' : '') + '> Sincronizare automată</label>' +
-      '<p class="hint" style="flex:1 1 100%; margin:6px 0 0">Cu sincronizarea automată pornită, orice modificare urcă în Sheet după câteva secunde, iar la fiecare revenire în pagină aplicația verifică dacă altcineva a schimbat ceva. Câștigă întotdeauna versiunea modificată cel mai recent.</p>' +
+      '<p class="hint" style="flex:1 1 100%; margin:6px 0 0">Cu sincronizarea automată pornită, orice modificare urcă în Sheet după câteva secunde, iar aplicația verifică singură dacă altcineva a schimbat ceva. Câștigă întotdeauna versiunea modificată cel mai recent.<br><br><b>Pui aplicația pe un dispozitiv nou?</b> Apasă aici <b>Copiază adresa</b>, trimite-ți-o pe WhatsApp, apoi pe dispozitivul nou o lipești în același câmp și scrii parola de mână. Acolo prima apăsare trebuie să fie <b>Adu datele de pe Sheets</b> — niciodată „Trimite", ca să nu urci o listă goală peste tot.</p>' +
     '</div></section>';
 }
 
