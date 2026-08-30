@@ -122,6 +122,14 @@ main{max-width:1420px; margin:0 auto; padding:22px 20px 90px}
 .sup-head{display:flex; align-items:center; gap:12px; padding:11px 14px; background:var(--panel-2); border-bottom:1px solid var(--line); cursor:pointer}
 .sup.closed .sup-head{border-bottom:0}
 .mono-badge{width:30px; height:30px; flex:0 0 30px; border-radius:3px; display:grid; place-items:center; font-family:"Bricolage Grotesque",sans-serif; font-weight:800; font-size:12px; background:var(--accent-soft); color:var(--accent); border:1px solid var(--accent-line)}
+/* furnizorul care are sigla: pecete colorata prin CSS, ceva mai mare ca sa se citeasca */
+.mono-badge.cu-sigla{
+  width:38px; height:38px; flex:0 0 38px;
+  background:none; border:0; border-radius:0;
+  background-color:var(--ink-2);
+  -webkit-mask:var(--l) center/contain no-repeat;
+          mask:var(--l) center/contain no-repeat;
+}
 .sup-head h2{font-size:15.5px; letter-spacing:-.01em}
 .sup-meta{font-size:11.5px; color:var(--muted); margin-top:1px}
 .sup-head .right{margin-left:auto; display:flex; align-items:center; gap:12px}
@@ -390,6 +398,9 @@ tfoot td{background:var(--panel-2); font-weight:600; border-bottom:0; border-top
 (function(){
 "use strict";
 
+/* sigla Manufactura de Brânză, folosită cu acordul lor, ca pecete în listă */
+var SIGLA_MB = "data:image/png;base64,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";
+
 /* ============ date implicite ============ */
 var UID = 0;
 function uid(){ UID++; return 'p' + Date.now().toString(36) + UID.toString(36); }
@@ -397,7 +408,7 @@ function P(name, um, target, price){ return {id:uid(), name:name, um:um||'kg', t
 
 function defaults(){
   return { suppliers:[
-    { id:uid(), name:'Manufactura de Brânză', short:'MB', contact:'', phone:'0749 968 944', email:'', day:'Luni', note:'Brânzeturi maturate în condimente',
+    { id:uid(), name:'Manufactura de Brânză', short:'MB', logo:SIGLA_MB, contact:'', phone:'0749 968 944', email:'', day:'Luni', note:'Brânzeturi maturate în condimente',
       products:[ P('Brânză cu curcuma','kg',2,60), P('Brânză cu cărbune','kg',2,60), P('Brânză cu busuioc','kg',2,60),
                  P('Brânză natur','kg',3,60), P('Brânză cu schinduf','kg',2,60), P('Brânză cu piper','kg',2,60),
                  P('Brânză cu chilli','kg',2,60), P('Brânză cu leurdă','kg',0,60), P('Brânză cu chimen','kg',0,60),
@@ -564,7 +575,8 @@ function renderOrder(){
     var closed = openState[s.id] === false ? ' closed' : '';
     html += '<section class="sup' + closed + '" data-s="' + s.id + '">';
     html += '<div class="sup-head" data-toggle="' + s.id + '">';
-    html += '<div class="mono-badge">' + esc(s.short || initials(s.name)) + '</div>';
+    html += '<div class="mono-badge' + (s.logo ? ' cu-sigla' : '') + '">' +
+            (s.logo ? '' : esc(s.short || initials(s.name))) + '</div>';
     html += '<div><h2>' + esc(s.name) + '</h2><div class="sup-meta">' +
             esc([s.day ? 'comandă ' + s.day : '', s.phone, s.contact].filter(Boolean).join(' · ') || 'fără detalii de contact') +
             '</div></div>';
@@ -599,7 +611,20 @@ function renderOrder(){
             '<td class="r price num" data-st>0,00</td><td></td></tr></tfoot></table></div></div></section>';
   });
   el('supList').innerHTML = html || '<div class="empty"><h3>Niciun produs găsit</h3><p>Schimbă căutarea sau adaugă produse din <b>Furnizori &amp; produse</b>, sus în dreapta.</p></div>';
+  aplicaSigle(el('supList'), 'data-s');
   refresh();
+}
+
+/* Imaginea siglei se pune prin proprietate CSS, nu in HTML: altfel ar aparea
+   un sir de mii de caractere in fiecare rand randat. */
+function aplicaSigle(radacina, atribut){
+  S.suppliers.forEach(function(s){
+    if(!s.logo) return;
+    var b = radacina.querySelectorAll('[' + atribut + '="' + s.id + '"] .mono-badge');
+    for(var i = 0; i < b.length; i++){
+      b[i].style.setProperty('--l', 'url("' + s.logo + '")');
+    }
+  });
 }
 
 /* recalcul fără re-randare (nu pierde focusul) */
@@ -759,7 +784,8 @@ function renderSetari(){
   var html = syncCard();
   S.suppliers.forEach(function(s, si){
     html += '<section class="sup" data-set="' + s.id + '">';
-    html += '<div class="sup-head" style="cursor:default"><div class="mono-badge">' + esc(s.short || initials(s.name)) + '</div>' +
+    html += '<div class="sup-head" style="cursor:default"><div class="mono-badge' +
+            (s.logo ? ' cu-sigla' : '') + '">' + (s.logo ? '' : esc(s.short || initials(s.name))) + '</div>' +
             '<div><h2>' + esc(s.name) + '</h2><div class="sup-meta">' + s.products.length + ' produse · ' +
             activeProducts(s).length + ' active</div></div>' +
             '<div class="right">' +
@@ -803,6 +829,7 @@ function renderSetari(){
   html += '<div class="card"><h3>Despre datele tale</h3><p class="hint">Totul se salvează automat în acest browser, pe acest calculator — nu pleacă nicăieri online. ' +
           'Folosește <b>Salvează copie de siguranță</b> ca să obții un fișier <code>.json</code> pe care îl poți duce pe alt calculator sau păstra ca backup.</p></div>';
   el('setList').innerHTML = html;
+  aplicaSigle(el('setList'), 'data-set');
 }
 function fld(label, sid, key, val, type){
   return '<div class="f"><label>' + label + '</label><input type="' + type + '" data-sf="' + key +
@@ -1310,9 +1337,17 @@ var pullOk = false;
 
 function migratii(){
   if(!S.migrari) S.migrari = {};
-  if(S.migrari.mb_sortimente_site) return;
-
   var s = S.suppliers.filter(function(x){ return /manufactura/i.test(x.name || ''); })[0];
+
+  /* pasul 2: pecetea furnizorului */
+  if(!S.migrari.mb_sigla){
+    if(s) s.logo = SIGLA_MB;
+    S.migrari.mb_sigla = true;
+    touch();
+    if(curTab === 'comanda') renderOrder();
+  }
+
+  if(S.migrari.mb_sortimente_site) return;
   if(s){
     var noi = ['Brânză cu leurdă', 'Brânză cu chimen', 'Brânză cu ierburi provensale',
                'Brânză cu mirodenii secuiești', 'Brânză cu Fetească Neagră'];
