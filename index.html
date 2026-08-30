@@ -1202,7 +1202,9 @@ function schedulePush(){
    Se trimite o cerere minusculă (probe) care întoarce doar ora ultimei
    modificări; datele propriu-zise se descarcă doar dacă chiar s-a schimbat
    ceva. Așa rămânem mult sub cota zilnică a Google. */
-var POLL_MS = 25000;
+var POLL_USOR = 25000;    /* scriptul nou raspunde cu o singura cifra */
+var POLL_GREU = 90000;    /* scriptul vechi trimite tot pachetul — intrebam mai rar */
+var POLL_MS = POLL_USOR;
 var pollTimer = null;
 
 function probe(){
@@ -1214,7 +1216,12 @@ function probe(){
       /* Scriptul nou raspunde doar cu {ts}. Cel vechi ignora ?probe si trimite
          intreg pachetul de date — atunci citim ora din el. Asa merge cu ambele
          versiuni, iar dupa actualizarea scriptului cererea devine si ieftina. */
-      var rts = (res.ts != null) ? res.ts : ((res.data && res.data.ts) || 0);
+      var usor = (res.ts != null);
+      var rts = usor ? res.ts : ((res.data && res.data.ts) || 0);
+      /* Daca serverul ne trimite tot pachetul, rarim intrebarile: altfel am
+         consuma degeaba date mobile si din cota zilnica de rulare a Google. */
+      var dorit = usor ? POLL_USOR : POLL_GREU;
+      if(dorit !== POLL_MS){ POLL_MS = dorit; startPolling(); }
       if(rts > (S.ts || 0)) pull(true);
       else { lastSync = Date.now(); syncIdle(); }
     })
