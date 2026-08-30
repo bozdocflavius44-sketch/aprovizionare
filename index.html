@@ -1295,5 +1295,12 @@ if(CFG.url) pull(true);
 startPolling();
 })();
 </script>
+<script>
+if (location.protocol === "https:" && "serviceWorker" in navigator) {
+  window.addEventListener("load", function () {
+    navigator.serviceWorker.register("sw.js").catch(function () {});
+  });
+}
+</script>
 </body>
 </html>
