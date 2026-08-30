@@ -398,9 +398,11 @@ function P(name, um, target, price){ return {id:uid(), name:name, um:um||'kg', t
 function defaults(){
   return { suppliers:[
     { id:uid(), name:'Manufactura de Brânză', short:'MB', contact:'', phone:'0749 968 944', email:'', day:'Luni', note:'Brânzeturi maturate în condimente',
-      products:[ P('Brânză cu curcuma','kg',2), P('Brânză cu cărbune','kg',2), P('Brânză cu busuioc','kg',2),
-                 P('Brânză natur','kg',3), P('Brânză cu schinduf','kg',2), P('Brânză cu piper','kg',2),
-                 P('Brânză cu chilli','kg',2) ] },
+      products:[ P('Brânză cu curcuma','kg',2,60), P('Brânză cu cărbune','kg',2,60), P('Brânză cu busuioc','kg',2,60),
+                 P('Brânză natur','kg',3,60), P('Brânză cu schinduf','kg',2,60), P('Brânză cu piper','kg',2,60),
+                 P('Brânză cu chilli','kg',2,60), P('Brânză cu leurdă','kg',0,60), P('Brânză cu chimen','kg',0,60),
+                 P('Brânză cu ierburi provensale','kg',0,60), P('Brânză cu mirodenii secuiești','kg',0,60),
+                 P('Brânză cu Fetească Neagră','kg',0,60) ] },
     { id:uid(), name:'Jam Spania', short:'JS', contact:'', phone:'0752 438 847', email:'', day:'Luni', note:'Mezeluri iberice, conserve, gemuri',
       products:[ P('Jamón Ibérico','buc',1), P('Jamón Duroc','buc',1), P('Jamón Serrano','buc',2),
                  P('Salchichón','kg',1), P('Chorizo Ibérico','kg',1), P('Chorizo Herradura dulce','buc',4),
@@ -1160,17 +1162,20 @@ function pull(silent){
     .then(function(res){
       if(!res.ok) throw new Error(res.error || 'eroare');
       if(!res.data || !res.data.suppliers){ syncIdle(); return false; }
+      pullOk = true;
       if((res.data.ts || 0) <= (S.ts || 0)){ lastSync = Date.now(); syncIdle(); return false; }
       S = res.data; load2();
       try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){}
       lastPushed = S.ts || 0;
       lastSync = Date.now();
+      pullOk = true;
       switchTab(curTab);
       syncIdle();
       toast('Actualizat cu modificările de pe celălalt dispozitiv');
       return true;
     })
     .catch(function(err){
+      pullOk = false;
       syncState('err', 'Sincronizare eșuată');
       if(!silent) toast('Nu am putut citi de pe server: ' + err.message);
       return false;
@@ -1295,6 +1300,44 @@ function syncCard(){
     '</div></section>';
 }
 
+/* ============ actualizari unice ============
+   Datele reale traiesc in Google Sheet, nu in cod. Cand lista de produse se
+   schimba, o modificare a listei implicite nu ajunge la cineva care are deja
+   date. De aceea: pasi marcati, care ruleaza o singura data si se propaga
+   prin sincronizare. Rulam DOAR dupa o aducere reusita de pe server, ca sa
+   nu suprascriem ceva mai nou lucrat pe alt dispozitiv. */
+var pullOk = false;
+
+function migratii(){
+  if(!S.migrari) S.migrari = {};
+  if(S.migrari.mb_sortimente_site) return;
+
+  var s = S.suppliers.filter(function(x){ return /manufactura/i.test(x.name || ''); })[0];
+  if(s){
+    var noi = ['Brânză cu leurdă', 'Brânză cu chimen', 'Brânză cu ierburi provensale',
+               'Brânză cu mirodenii secuiești', 'Brânză cu Fetească Neagră'];
+    var adaugate = 0;
+    noi.forEach(function(n){
+      var jos = n.toLowerCase();
+      var gasit = s.products.some(function(p){ return (p.name || '').toLowerCase() === jos; });
+      if(!gasit){
+        s.products.push({ id:uid(), name:n, um:'kg', target:0, price:60, active:true });
+        adaugate++;
+      }
+    });
+    /* pretul se pune doar unde nu ai stabilit deja altul */
+    s.products.forEach(function(p){ if(!num(p.price)) p.price = 60; });
+
+    S.migrari.mb_sortimente_site = true;
+    touch();
+    if(adaugate) toast(adaugate + ' sortimente noi la Manufactura de Brânză');
+    if(curTab === 'comanda') renderOrder();
+    return;
+  }
+  S.migrari.mb_sortimente_site = true;
+  touch();
+}
+
 /* ============ pornire ============ */
 load();
 el('weekVal').textContent = weekLabel(week);
@@ -1304,7 +1347,8 @@ renderOrder();
 renderIstoric();
 lastPushed = S.ts || 0;
 syncIdle();
-if(CFG.url) pull(true);
+if(CFG.url){ pull(true).then(function(){ if(pullOk) migratii(); }); }
+else { migratii(); }
 startPolling();
 })();
 </script>
